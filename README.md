@@ -2,9 +2,10 @@
 # keycloak-otp-authenticator
 
 To install the OTP Authenticator one has to:
+* Download keycloak-otp-authenticator.jar file from the latest [releases](https://github.com/khanadnanxyz/keycloak-otp-authenticator/releases)
 
 * Add the jar to the Keycloak server:
-  * `$ cp target/keycloak-otp-authenticator.jar _KEYCLOAK_HOME_/standalone/deployments`
+  * `$ cp ../keycloak-otp-authenticator.jar _KEYCLOAK_HOME_/standalone/deployments`
 
 * Add two templates to the Keycloak server:
   * `$ cp templates/otp.ftl _KEYCLOAK_HOME_/themes/base/login/`
