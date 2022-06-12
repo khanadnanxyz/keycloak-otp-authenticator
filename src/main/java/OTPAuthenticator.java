@@ -1,9 +1,13 @@
+import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
@@ -15,7 +19,9 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 public class OTPAuthenticator implements Authenticator {
@@ -127,19 +133,21 @@ public class OTPAuthenticator implements Authenticator {
         try {
 
             URIBuilder builder = new URIBuilder();
-            builder.setScheme(smsScheme).setHost(smsHost).setPath(smsPath)
-                    .setParameter("Username", smsUsername)
-                    .setParameter("Password", smsPassword)
-                    .setParameter("From", smsFrom)
-                    .setParameter("To", smsToPrefix + mobileNumber)
-                    .setParameter("Message", smsText + " " + code);
+            builder.setScheme(smsScheme).setHost(smsHost).setPath(smsPath);
             URI uri = builder.build();
-            HttpGet httpget = new HttpGet(uri);
-            System.out.println(httpget.getURI());
 
+            HttpPost httpPost = new HttpPost(uri);
+
+            List<NameValuePair> pairs = new ArrayList<>();
+            pairs.add(new BasicNameValuePair("Username", smsUsername));
+            pairs.add(new BasicNameValuePair("Password", smsPassword));
+            pairs.add(new BasicNameValuePair("From", smsFrom));
+            pairs.add(new BasicNameValuePair("To", smsToPrefix + mobileNumber));
+            pairs.add(new BasicNameValuePair("Message", smsText + " " + code));
+
+            httpPost.setEntity(new UrlEncodedFormEntity(pairs));
             HttpClient httpClient = HttpClients.createDefault();
-            CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpget);
-            System.out.println(response.toString());
+            CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpPost);
             StatusLine sl = response.getStatusLine();
             response.close();
             if (sl.getStatusCode() != 200) {
@@ -147,7 +155,7 @@ public class OTPAuthenticator implements Authenticator {
             }
             return sl.getStatusCode() == 200;
         } catch (IOException | URISyntaxException e) {
-            logger.error("sendSms called ... SecretQuestionAuthenticator" + e);
+            logger.error("sendSms called .. ." + e);
             return false;
         }
     }
